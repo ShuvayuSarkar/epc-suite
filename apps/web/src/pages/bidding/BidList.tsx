@@ -138,21 +138,70 @@ export default function BidList() {
       {/* Analytics Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">Bid Outcome Distribution</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={65}
-                label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
-                {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-slate-700">Bid Outcome Distribution</h3>
+            <span className="text-xs text-slate-500 font-medium">Total: {bids.length} Bids</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                cx="50%"
+                cy="44%"
+                innerRadius={46}
+                outerRadius={72}
+                paddingAngle={3}
+                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, value }) => {
+                  if (!value || percent < 0.1) return null;
+                  const RADIAN = Math.PI / 180;
+                  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      fill="#ffffff"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="text-xs font-bold pointer-events-none select-none"
+                    >
+                      {value}
+                    </text>
+                  );
+                }}
+                labelLine={false}
+              >
+                {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} stroke="#ffffff" strokeWidth={2} />)}
               </Pie>
-              <Tooltip /><Legend />
+              <Tooltip
+                formatter={(v: number, name: string) => [
+                  `${v} Bids (${bids.length ? ((v / bids.length) * 100).toFixed(0) : 0}%)`,
+                  name
+                ]}
+              />
+              <Legend
+                verticalAlign="bottom"
+                height={32}
+                iconType="circle"
+                iconSize={8}
+                formatter={(value, entry: any) => (
+                  <span className="text-xs font-medium text-slate-700 mr-2">
+                    {value}: <span className="font-bold text-slate-900">{entry.payload?.value ?? 0}</span>
+                  </span>
+                )}
+              />
             </PieChart>
           </ResponsiveContainer>
         </Card>
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">Bid Value by Client (₹ Lakhs)</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={clientBarData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-slate-700">Bid Value by Client (₹ Lakhs)</h3>
+            <span className="text-xs text-slate-500 font-medium">{clientBarData.length} Clients</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={clientBarData} margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
               <XAxis dataKey="client" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()} L`, "Bid Value"]} />

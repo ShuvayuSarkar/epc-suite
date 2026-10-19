@@ -204,19 +204,44 @@ export default function BankGuaranteeTracker() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">BG Value by Type (₹ Lakhs)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart><Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={80} label={({ name, value }) => `${name}: ₹${value}L`} labelLine={false}>
-              {pieData.map((_,i) => <Cell key={i} fill={PIE_COLORS[i]}/>)}
-            </Pie><Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}L`,"Amount"]}/><Legend wrapperStyle={{ fontSize:"11px" }}/></PieChart>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                cx="50%"
+                cy="44%"
+                innerRadius={46}
+                outerRadius={72}
+                paddingAngle={3}
+                stroke="#ffffff"
+                strokeWidth={2}
+              >
+                {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              </Pie>
+              <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}L`, "Amount"]} />
+              <Legend
+                verticalAlign="bottom"
+                height={32}
+                iconType="circle"
+                iconSize={8}
+                formatter={(value, entry: any) => (
+                  <span className="text-xs font-medium text-slate-700 mr-2">
+                    {value}: <span className="font-bold text-slate-900">₹{entry.payload?.value ?? 0}L</span>
+                  </span>
+                )}
+              />
+            </PieChart>
           </ResponsiveContainer>
         </Card>
         <Card className="p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">BG Expiry Timeline (₹L at risk per month)</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={barData} margin={{ top:4, right:8, left:-20, bottom:0 }}>
-              <XAxis dataKey="month" tick={{ fontSize:11 }}/><YAxis tick={{ fontSize:11 }}/>
-              <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}L`,"Expiring BG Value"]}/>
-              <Bar dataKey="amount" fill="#f59e0b" radius={[4,4,0,0]}/>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={barData} margin={{ top: 10, right: 8, left: -20, bottom: 5 }}>
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v: number) => [`₹${v.toLocaleString()}L`, "Expiring BG Value"]} />
+              <Bar dataKey="amount" fill="#f59e0b" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

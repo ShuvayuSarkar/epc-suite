@@ -274,10 +274,34 @@ export default function HotspotDashboard() {
             </Card>
             <Card className="p-4">
               <p className="text-xs font-semibold text-slate-600 mb-2">Visit Outcome Distribution</p>
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart><Pie data={visitPie} dataKey="value" cx="50%" cy="50%" outerRadius={60} label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
-                  {visitPie.map((_, i) => <Cell key={i} fill={["#22c55e","#f59e0b","#ef4444"][i]}/>)}
-                </Pie><Tooltip/></PieChart>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                  <Pie
+                    data={visitPie}
+                    dataKey="value"
+                    cx="50%"
+                    cy="44%"
+                    innerRadius={38}
+                    outerRadius={60}
+                    paddingAngle={3}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                  >
+                    {visitPie.map((_, i) => <Cell key={i} fill={["#22c55e", "#f59e0b", "#ef4444"][i % 3]} />)}
+                  </Pie>
+                  <Tooltip />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={32}
+                    iconType="circle"
+                    iconSize={8}
+                    formatter={(value, entry: any) => (
+                      <span className="text-xs font-medium text-slate-700 mr-2">
+                        {value}: <span className="font-bold text-slate-900">{entry.payload?.value ?? 0}</span>
+                      </span>
+                    )}
+                  />
+                </PieChart>
               </ResponsiveContainer>
             </Card>
           </div>
@@ -347,9 +371,34 @@ export default function HotspotDashboard() {
           <Card className="p-5">
             <h3 className="text-sm font-semibold text-slate-700 mb-3">Hotspots by Category (BRD 7 Types)</h3>
             <ResponsiveContainer width="100%" height={240}>
-              <PieChart><Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={85} label={({ name,value }) => `${name}: ${value}`} labelLine={false}>
-                {pieData.map((entry,i) => <Cell key={i} fill={Object.values(CAT_COLORS)[i]}/>)}
-              </Pie><Tooltip/><Legend wrapperStyle={{ fontSize:"11px" }}/></PieChart>
+              <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  cx="50%"
+                  cy="44%"
+                  innerRadius={46}
+                  outerRadius={72}
+                  paddingAngle={3}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                >
+                  {pieData.map((entry, i) => <Cell key={i} fill={Object.values(CAT_COLORS)[i % Object.values(CAT_COLORS).length]} />)}
+                </Pie>
+                <Tooltip />
+                <Legend
+                  verticalAlign="bottom"
+                  height={32}
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: "11px" }}
+                  formatter={(value, entry: any) => (
+                    <span className="text-xs font-medium text-slate-700 mr-2">
+                      {value}: <span className="font-bold text-slate-900">{entry.payload?.value ?? 0}</span>
+                    </span>
+                  )}
+                />
+              </PieChart>
             </ResponsiveContainer>
           </Card>
           <Card className="p-5">

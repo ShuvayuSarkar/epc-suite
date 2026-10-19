@@ -215,10 +215,34 @@ export default function InsuranceTracker() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="p-5">
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Coverage by Type (₹ Cr)</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart><Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={80} label={({ name, value }) => `${name}: ₹${value}Cr`} labelLine={false}>
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]}/>)}
-                </Pie><Tooltip formatter={(v: number) => [`₹${v} Cr`,"Coverage"]}/></PieChart>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    cx="50%"
+                    cy="44%"
+                    innerRadius={46}
+                    outerRadius={72}
+                    paddingAngle={3}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                  >
+                    {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip formatter={(v: number) => [`₹${v} Cr`, "Coverage"]} />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={32}
+                    iconType="circle"
+                    iconSize={8}
+                    formatter={(value, entry: any) => (
+                      <span className="text-xs font-medium text-slate-700 mr-2">
+                        {value}: <span className="font-bold text-slate-900">₹{entry.payload?.value ?? 0} Cr</span>
+                      </span>
+                    )}
+                  />
+                </PieChart>
               </ResponsiveContainer>
             </Card>
             <Card className="p-5 space-y-3">
