@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "strictPropertyInitialization": false,
+    "strict": false,
+    "skipLibCheck": true,
+    "paths": {
+      "@epc/shared-types": ["../../libs/shared-types/src"],
+      "@epc/shared-types/*": ["../../libs/shared-types/src/*"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

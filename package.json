@@ -1,0 +1,19 @@
+{
+  "name": "@epc-suite/root",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@epc-suite/web",
+    "dev:api": "npm run start:dev --workspace=@epc-suite/api",
+    "dev:web": "npm run dev --workspace=@epc-suite/web",
+    "build": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=@epc-suite/api",
+    "build:web": "npm run build --workspace=@epc-suite/web",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "strict": true,
+    "paths": {
+      "@epc/shared-types": ["libs/shared-types/src"],
+      "@epc/shared-types/*": ["libs/shared-types/src/*"],
+      "@epc/state-machine": ["libs/state-machine/src"],
+      "@epc/state-machine/*": ["libs/state-machine/src/*"],
+      "@epc/utils": ["libs/utils/src"],
+      "@epc/utils/*": ["libs/utils/src/*"]
+    }
+  }
+}
