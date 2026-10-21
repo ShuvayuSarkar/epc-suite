@@ -32,12 +32,50 @@ interface DispatchLog {
   vehicleNo: string; fromPlant: string; toSite: string;
   dispatchDate: string; expectedArrival: string; odcPermit: string;
   ewayBill: string; transitInsurance: string; status: DispStatus; project: string; category: string;
+  diNo?: string; // MSETCL DI / MDCC Number (Mandatory for utility dispatch clearance)
 }
 
 // ── Mock Data ─────────────────────────────────────────────────────────
 const MOCK_ITEMS: POLineItem[] = [];
 
-const MOCK_DISPATCHES: DispatchLog[] = [];
+const MOCK_DISPATCHES: DispatchLog[] = [
+  {
+    dispatchId: 'DSP-101',
+    poNo: 'PO-APAR-2026-001',
+    diNo: 'MSETCL/SE/TR-400KV/DI-088',
+    material: 'HTLS INVAR Conductor (Drum 1–4)',
+    qty: 16,
+    vehicleNo: 'MH-04-GP-8821',
+    fromPlant: 'Apar Silvassa Works',
+    toSite: 'MSETCL Central Site Store (Nagpur)',
+    dispatchDate: '2026-10-18',
+    expectedArrival: '2026-10-22',
+    odcPermit: 'ODC-2026-8812',
+    ewayBill: 'EWB-8819201948',
+    transitInsurance: 'TIC-001',
+    status: 'In Transit',
+    project: '400kV Double Circuit Transmission Line',
+    category: 'HTLS Conductor',
+  },
+  {
+    dispatchId: 'DSP-102',
+    poNo: 'PO-VEN-2026-008',
+    diNo: 'MSETCL/SE/TR-400KV/DI-092',
+    material: 'Tension Hardware Clamps 160kN',
+    qty: 240,
+    vehicleNo: 'GJ-06-TR-4512',
+    fromPlant: 'Ensto Works (Halol)',
+    toSite: 'MSETCL Central Site Store (Nagpur)',
+    dispatchDate: '2026-10-19',
+    expectedArrival: '2026-10-23',
+    odcPermit: 'N/A',
+    ewayBill: 'EWB-9920182741',
+    transitInsurance: 'TIC-002',
+    status: 'In Transit',
+    project: '400kV Double Circuit Transmission Line',
+    category: 'Hardware & Fittings',
+  },
+];
 
 const trendData = [
   { date:'Oct-01', planned:10, actual:12 }, { date:'Oct-05', planned:25, actual:24 }, { date:'Oct-10', planned:40, actual:38 },
@@ -94,6 +132,7 @@ export default function POLineItemList() {
 
   const [newDispatch, setNewDispatch] = useState<Partial<DispatchLog>>({
     poNo: 'PO-2026-001',
+    diNo: '',
     material: '',
     qty: 50,
     vehicleNo: '',
@@ -167,6 +206,7 @@ export default function POLineItemList() {
     const created: DispatchLog = {
       dispatchId: `DSP-${String(dispatches.length + 101)}`,
       poNo: newDispatch.poNo || 'PO-2026-001',
+      diNo: newDispatch.diNo || 'MSETCL/DI/PENDING',
       material: newDispatch.material,
       qty: Number(newDispatch.qty) || 0,
       vehicleNo: newDispatch.vehicleNo,
@@ -185,6 +225,7 @@ export default function POLineItemList() {
     setShowDispatchModal(false);
     setNewDispatch({
       poNo: 'PO-2026-001',
+      diNo: '',
       material: '',
       qty: 50,
       vehicleNo: '',
@@ -461,7 +502,7 @@ export default function POLineItemList() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>{['Dispatch ID','PO No.','Material','Qty','Vehicle','Route','Dispatch Date','ETA','ODC Permit','E-Way Bill','Status'].map(h => (
+                  <tr>{['Dispatch ID','PO No.','Utility DI / MDCC #','Material','Qty','Vehicle','Route','Dispatch Date','ETA','ODC Permit','E-Way Bill','Status'].map(h => (
                     <th key={h} className="px-3 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase whitespace-nowrap">{h}</th>
                   ))}</tr>
                 </thead>
@@ -470,6 +511,17 @@ export default function POLineItemList() {
                     <tr key={d.dispatchId} className="hover:bg-slate-50">
                       <td className="px-3 py-3 font-mono text-xs text-indigo-600">{d.dispatchId}</td>
                       <td className="px-3 py-3 text-xs text-slate-500">{d.poNo}</td>
+                      <td className="px-3 py-3 font-mono text-xs text-indigo-700 font-semibold">
+                        {d.diNo ? (
+                          <span className="bg-indigo-50 border border-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded text-[11px]">
+                            {d.diNo}
+                          </span>
+                        ) : (
+                          <span className="bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded text-[10px]">
+                            DI Pending
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-3 text-xs text-slate-800">{d.material}</td>
                       <td className="px-3 py-3 text-xs font-semibold">{d.qty}</td>
                       <td className="px-3 py-3 text-xs font-mono">{d.vehicleNo}</td>
@@ -721,6 +773,20 @@ export default function POLineItemList() {
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
                   />
                 </div>
+              </div>
+              <div className="bg-indigo-50/60 p-3 rounded-lg border border-indigo-200">
+                <label className="block text-xs font-bold text-indigo-900 mb-1">
+                  Utility DI / MDCC Number * <span className="text-slate-500 font-normal">(e.g. MSETCL/SE/TR-400KV/DI-088)</span>
+                </label>
+                <input
+                  value={newDispatch.diNo || ''}
+                  onChange={e => setNewDispatch({ ...newDispatch, diNo: e.target.value })}
+                  placeholder="Enter official Utility Dispatch Instruction / MDCC number"
+                  className="w-full border border-indigo-300 rounded-lg px-3 py-2 text-sm font-mono bg-white"
+                />
+                <p className="text-[11px] text-indigo-700 mt-1">
+                  Mandatory for utility transmission gate passes. Issued after joint FAT approval.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

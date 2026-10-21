@@ -15,7 +15,7 @@ import {
   CheckCircle2, AlertCircle, Clock, AlertTriangle,
   MapPin, Flame, Truck, Award, ShieldCheck, FileCheck,
   Landmark, Trees, Home, Lock, BarChart2, Grid,
-  ArrowRight, TrendingUp,
+  ArrowRight, TrendingUp, Warehouse, Layers,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -67,15 +67,15 @@ const CHECKLIST: CheckItem[] = [
     moduleId: '4.14', module: 'Vendor Finalization',
     description: 'Per-category vendor selection: HTLS, OPGW, Towers, Insulators, Hardware, ACSR, Earthwire, Civil, Transport, Stringing, Telecom, Testing. Minimum 8/12 categories finalized before 25% Gate.',
     route: '/golden-period/vendor-finalization', sla: '8/12 categories before 25% Gate',
-    status: 'In Progress', progress: 67, keyMetric: '8/12 categories · ACSR & Hardware pending',
+    status: 'Complete', progress: 100, keyMetric: '10/12 categories finalized · Approvals secured',
     icon: Truck,
   },
   {
-    id: '2.4', ref: 'BRD 2.4', title: 'LOI / Manufacturing Clearance',
+    id: '2.4', ref: 'BRD 2.4', title: 'Mother BOQ & Advance Mfg Clearance',
     moduleId: '4.14', module: 'LOI / Mfg Clearance',
-    description: 'Letter of Intent issued per vendor category. Manufacturing clearance mandatory for HTLS conductor and OPGW vendors before production start. Independent tracking for each clearance document.',
-    route: '/golden-period/manufacturing-clearance', sla: '≤45 days from award',
-    status: 'In Progress', progress: 58, keyMetric: '6 LOIs issued · HTLS & OPGW cleared · Towers LOI pending',
+    description: 'Downstream manufacturing clearance strictly mapped to Client Mother BOQ (10 items): 100% Conductor allocated to Apar internal works; 75% Hardware & Insulators allocated to secure factory slots.',
+    route: '/golden-period/manufacturing-clearance', sla: '≤15 days from award',
+    status: 'Complete', progress: 100, keyMetric: '100% Conductor (450km) & 75% HW (900 sets) locked to Mother BOQ',
     icon: Award,
   },
   {
@@ -83,15 +83,15 @@ const CHECKLIST: CheckItem[] = [
     moduleId: '4.10', module: 'Insurance',
     description: 'Contractor All Risk (CAR), Third Party Liability (TPL), Workmen Compensation (WC), Marine Transit, Environmental Liability, Professional Indemnity, Group Personal Accident (GPA), Equipment Insurance. All must be Compliant before mobilization.',
     route: '/golden-period/insurance', sla: 'All policies active before mobilization',
-    status: 'In Progress', progress: 75, keyMetric: '6/8 compliant · WC renewal pending · Env. liability overdue',
+    status: 'In Progress', progress: 75, keyMetric: '6/8 compliant · WC renewal pending · Env. liability active',
     icon: ShieldCheck,
   },
   {
-    id: '2.6', ref: 'BRD 2.6', title: 'Statutory Verification',
-    moduleId: '4.10', module: 'Statutory',
-    description: 'Forest Department NOC, Railway crossing permissions, PWD permissions, NHAI approvals, State pollution board clearances, Archaeological Survey clearance. Segment-wise tracking.',
-    route: '/golden-period/statutory', sla: 'NOCs before respective work commencement',
-    status: 'In Progress', progress: 55, keyMetric: '12/22 NOCs obtained · 4 under process · 6 not initiated',
+    id: '2.6', ref: 'BRD 2.6', title: '2-Part Statutory Compliance (Electrical & Labour)',
+    moduleId: '4.10', module: 'Statutory Verification',
+    description: 'Track A (Electrical): CEIG Contractor License & Supervisor Competency Permits. Track B (Labour): Client Form V from MSETCL, CLRA Form VI license & Workmen Compensation policy.',
+    route: '/golden-period/statutory', sla: 'Licenses active before site mobilization',
+    status: 'In Progress', progress: 65, keyMetric: 'Track A CEIG applied · Track B Consultancy finalized · Form V awaited',
     icon: FileCheck,
   },
   {
@@ -107,7 +107,7 @@ const CHECKLIST: CheckItem[] = [
     moduleId: '4.10', module: 'Statutory',
     description: 'Forest clearance (Stage I & II), State Environment Impact Assessment, pollution board NOC. Blocked segments cannot have foundation work commenced until clearance obtained.',
     route: '/golden-period/statutory', sla: 'Before any restricted area work',
-    status: 'Blocked', progress: 30, keyMetric: 'Seg C blocked · Forest Dept NOC pending · Env. team engaged',
+    status: 'In Progress', progress: 60, keyMetric: 'Joint inspection done · MoEF Stage-1 clearance expected Day 50',
     icon: Trees,
   },
   {
@@ -115,16 +115,24 @@ const CHECKLIST: CheckItem[] = [
     moduleId: '4.4', module: 'Land Acquisition',
     description: 'Plot-wise land acquisition tracking: owner name, survey number, taluka, district, compensation amount, payment status, possession date. Affected structures and crop compensation tracked separately.',
     route: '/golden-period/statutory', sla: 'Acquisition before foundation for each plot',
-    status: 'In Progress', progress: 45, keyMetric: '42/91 plots cleared · 28 in process · 21 not initiated',
+    status: 'In Progress', progress: 65, keyMetric: '62/91 plots cleared · 18 in process · 11 not initiated',
     icon: Home,
   },
   {
-    id: '2.10', ref: 'BRD 2.10', title: '25% Pre-Production Gate',
+    id: '2.10', ref: 'BRD 2.10', title: '25% Pre-Production & 60-Day Ground Break Gate',
     moduleId: '4.14', module: 'Production Readiness',
-    description: 'Formal gate review: Survey approved, ≥8/12 vendors finalized, HTLS/OPGW Mfg Clearance issued, CPBG/CPG submitted. All 4 conditions must pass simultaneously. Triggers production start authorization.',
+    description: 'Formal gate review: Route survey approved, 10-item Mother BOQ fed, 100% Conductor & 75% HW cleared, Store certified ready, CEIG & Form V applied, CPBG submitted. Unlocks Day 60 tower foundations.',
     route: '/golden-period', sla: '≤60 days from award acceptance',
-    status: 'In Progress', progress: 75, keyMetric: '3/4 conditions met · Vendor finalization (8/12) pending',
+    status: 'In Progress', progress: 85, keyMetric: '5/6 gate criteria cleared · Day 42 of 60 · On track for 15-Nov foundation kickoff',
     icon: Lock,
+  },
+  {
+    id: '2.11', ref: 'BRD 2.11', title: 'Site Store & Yard Readiness (Inventory Controller)',
+    moduleId: '4.15', module: 'Stores & Logistics',
+    description: 'Central project site store & material yard setup certified by Inventory Controller before MSETCL DI dispatches arrive. Boundary fencing, security, heavy crane access, demarcated drum stacking bays.',
+    route: '/inventory', sla: '≤35 days from award',
+    status: 'In Progress', progress: 80, keyMetric: '3,200 sq.m yard · Fencing & security active · Crane operational · Inventory controller on site',
+    icon: Warehouse,
   },
 ];
 
@@ -154,9 +162,11 @@ const hotspotData = [
 
 const gateData = [
   { condition: 'Survey Approved', passed: true },
-  { condition: 'Vendors (8/12)',  passed: false },
-  { condition: 'Mfg Clearance',  passed: true },
-  { condition: 'CPBG/CPG',       passed: true },
+  { condition: 'Mother BOQ & Mfg Clr', passed: true },
+  { condition: 'CPBG/CPG Submitted', passed: true },
+  { condition: 'Site Store Ready', passed: true },
+  { condition: 'Vendors Finalized', passed: true },
+  { condition: 'CEIG & Form V in Process', passed: true },
 ];
 
 const MODULE_MAP = [
@@ -225,11 +235,12 @@ export default function GoldenPeriodDashboard() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200">
         {[
           { label: 'Golden Period Overview', href: '/golden-period', icon: <Grid size={14} />, moduleId: undefined },
-          { label: 'Vendor Finalization', href: '/golden-period/vendor-finalization', icon: <Award size={14} />, moduleId: '4.14' as ModuleId },
+          { label: 'Mother Order BOQ', href: '/contracts', icon: <Layers size={14} />, moduleId: '4.10' as ModuleId },
           { label: 'LOI / Mfg Clearance', href: '/golden-period/manufacturing-clearance', icon: <FileCheck size={14} />, moduleId: '4.14' as ModuleId },
+          { label: 'Inspection & DI Loop', href: '/qa-qc/inspections', icon: <ShieldCheck size={14} />, moduleId: '4.13' as ModuleId },
+          { label: 'Site Store Readiness', href: '/inventory', icon: <Warehouse size={14} />, moduleId: '4.15' as ModuleId },
+          { label: '2-Part Statutory', href: '/golden-period/statutory', icon: <Trees size={14} />, moduleId: '4.5' as ModuleId },
           { label: 'Bank Guarantees', href: '/golden-period/bank-guarantees', icon: <Landmark size={14} />, moduleId: '4.10' as ModuleId },
-          { label: 'Insurance Tracker', href: '/golden-period/insurance', icon: <ShieldCheck size={14} />, moduleId: '4.5' as ModuleId },
-          { label: 'Statutory Verification', href: '/golden-period/statutory', icon: <Trees size={14} />, moduleId: '4.5' as ModuleId },
         ]
           .filter(item => !item.moduleId || canView(getEffectivePermission(item.moduleId)))
           .map(item => (
@@ -242,6 +253,69 @@ export default function GoldenPeriodDashboard() {
               {item.label}
             </Link>
           ))}
+      </div>
+
+      {/* ── 60-Day Ground Break Mission Banner ── */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/50 rounded-xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950 uppercase tracking-wide">
+                Target: Hit the Ground in 60 Days
+              </span>
+              <span className="text-xs text-indigo-300 font-medium">
+                Stage 2 Golden Period Operational Workflow
+              </span>
+            </div>
+            <h3 className="text-xl font-black text-white tracking-tight">
+              Pre-Construction Execution Window (Day 0: Award → Day 60: Civil Foundation Kickoff)
+            </h3>
+            <p className="text-xs text-indigo-200 mt-1 max-w-2xl">
+              Strictly driven by the 10-Item Mother Order BOQ, 100% Conductor & 75% Hardware advance clearances, Site Store certification by Inventory Controller, and the 2-Part Statutory tracks.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-6 bg-white/5 border border-white/10 px-5 py-3 rounded-xl backdrop-blur-md">
+            <div className="text-center">
+              <div className="text-2xl font-black text-amber-400">Day 42</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Elapsed</div>
+            </div>
+            <div className="h-8 w-px bg-white/20"></div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-emerald-400">18 Days</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Remaining</div>
+            </div>
+            <div className="h-8 w-px bg-white/20"></div>
+            <div className="text-right">
+              <div className="text-xs text-indigo-300 font-semibold">Target Ground Break</div>
+              <div className="text-sm font-bold text-white">15-Nov-2026</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5 Operational Pillars Status */}
+        <div className="mt-4 pt-3 border-t border-indigo-800/50 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+          <div className="bg-white/5 p-2 rounded border border-white/10">
+            <span className="text-[10px] text-indigo-300 block font-semibold">1. Mother BOQ Feed</span>
+            <span className="text-emerald-400 font-bold">10 Items Mapped</span>
+          </div>
+          <div className="bg-white/5 p-2 rounded border border-white/10">
+            <span className="text-[10px] text-indigo-300 block font-semibold">2. Mfg Clearance</span>
+            <span className="text-emerald-400 font-bold">100% Cond / 75% HW</span>
+          </div>
+          <div className="bg-white/5 p-2 rounded border border-white/10">
+            <span className="text-[10px] text-indigo-300 block font-semibold">3. Inspection / DI Loop</span>
+            <span className="text-indigo-300 font-bold">FAT Done · DI In Progress</span>
+          </div>
+          <div className="bg-white/5 p-2 rounded border border-white/10">
+            <span className="text-[10px] text-indigo-300 block font-semibold">4. Site Store Yard</span>
+            <span className="text-emerald-400 font-bold">Inventory Certified (80%)</span>
+          </div>
+          <div className="bg-white/5 p-2 rounded border border-white/10">
+            <span className="text-[10px] text-indigo-300 block font-semibold">5. Statutory Tracks</span>
+            <span className="text-amber-300 font-bold">CEIG & Form V Active</span>
+          </div>
+        </div>
       </div>
 
       {/* ── Summary Banner ──────────────────────────────────────────────────── */}

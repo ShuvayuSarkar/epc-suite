@@ -10,12 +10,14 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, LineChart, Line, ReferenceLine,
 } from 'recharts';
-import { FileText, Truck, RefreshCw, AlertCircle, Plus, X } from 'lucide-react';
+import { FileText, Truck, RefreshCw, AlertCircle, Plus, X, Layers, CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Tabs } from '../../components/ui/Tabs';
+import { usePersistentState } from '../../hooks/usePersistentState';
+import { ClientBOQItem, INITIAL_MSETCL_BOQ } from '../../types/clientBoq';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -28,6 +30,7 @@ interface LOIRecord {
   vendor: string;
   vendorCode: string;
   category: string;
+  boqItemId?: string;
   itemDescription: string;
   quantity: number;
   unit: string;
@@ -64,6 +67,7 @@ interface POConversion {
 }
 
 interface IssueLoiForm {
+  boqItemId: string;
   vendor: string;
   category: string;
   itemDesc: string;
@@ -75,85 +79,117 @@ interface IssueLoiForm {
 }
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
-// Project: NTPC Lara 765kV — 8 LOIs across 3 vendors
+// Seeded with Golden Period initial allocations: 100% Conductor, 75% Hardware, 75% Insulators
 
-const MOCK_LOIS: LOIRecord[] = [];
+const MOCK_LOIS: LOIRecord[] = [
+  {
+    loiId: 'LOI-MC-001',
+    date: '2026-10-02',
+    vendor: 'Apar Industries Ltd (Internal Works)',
+    vendorCode: 'APR-INT-01',
+    category: 'Conductor',
+    boqItemId: 'BOQ-01',
+    itemDescription: 'HTLS INVAR Conductor - 100% Client Mother BOQ Allocation',
+    quantity: 450,
+    unit: 'KM',
+    estimatedValueL: 2160,
+    validTill: '2026-12-15',
+    status: 'Active',
+    daysToExpiry: 55,
+  },
+  {
+    loiId: 'LOI-MC-002',
+    date: '2026-10-04',
+    vendor: 'Ensto / IAC Hardware Works',
+    vendorCode: 'VEN-HW-02',
+    category: 'Hardware',
+    boqItemId: 'BOQ-02',
+    itemDescription: 'Hardware Fittings & Vibration Dampers (75% Advance Booking)',
+    quantity: 900,
+    unit: 'Sets',
+    estimatedValueL: 405,
+    validTill: '2026-12-15',
+    status: 'Active',
+    daysToExpiry: 55,
+  },
+  {
+    loiId: 'LOI-MC-003',
+    date: '2026-10-05',
+    vendor: 'Aditya Birla Insulators',
+    vendorCode: 'ABI-055',
+    category: 'Insulator',
+    boqItemId: 'BOQ-03',
+    itemDescription: 'Disc / Polymer Long Rod Insulators 120kN/160kN (75% Advance Booking)',
+    quantity: 3600,
+    unit: 'Nos',
+    estimatedValueL: 288,
+    validTill: '2026-12-20',
+    status: 'Active',
+    daysToExpiry: 60,
+  },
+];
 
 const MOCK_PRODUCTION: ProductionStatus[] = [
   {
-    loiId: 'LOI-NL-004',
+    loiId: 'LOI-MC-001',
+    vendor: 'Apar Industries Ltd (Internal Works)',
+    category: 'HTLS Conductor',
+    percentComplete: 78,
+    plannedCompletionDate: '2026-11-05',
+    actualCompletionDate: null,
+    qualityFlag: 'Pass',
+    remarks: 'Stranding of lot 1 & 2 complete. FAT call raised to Marketing & MSETCL.',
+  },
+  {
+    loiId: 'LOI-MC-002',
+    vendor: 'Ensto / IAC Hardware Works',
+    category: 'Hardware Fittings',
+    percentComplete: 62,
+    plannedCompletionDate: '2026-11-12',
+    actualCompletionDate: null,
+    qualityFlag: 'Pass',
+    remarks: 'Forging & galvanization complete for tension clamps. Suspension clamps in machining.',
+  },
+  {
+    loiId: 'LOI-MC-003',
     vendor: 'Aditya Birla Insulators',
     category: 'Insulators (Disc/Polymer)',
     percentComplete: 48,
-    plannedCompletionDate: '2025-09-01',
-    actualCompletionDate: null,
-    qualityFlag: 'Pass',
-    remarks: 'Production on schedule. 1st batch FAT passed on 2025-07-15.',
-  },
-  {
-    loiId: 'LOI-NL-005',
-    vendor: 'Apar Industries Ltd',
-    category: 'HTLS Conductor',
-    percentComplete: 72,
-    plannedCompletionDate: '2025-07-25',
+    plannedCompletionDate: '2026-11-20',
     actualCompletionDate: null,
     qualityFlag: 'Pending',
-    remarks: '3rd lot drawing pending TPIA witness. Expected sign-off 2025-07-20.',
-  },
-  {
-    loiId: 'LOI-NL-006',
-    vendor: 'KEC International Ltd',
-    category: 'Towers & Structures',
-    percentComplete: 35,
-    plannedCompletionDate: '2025-08-10',
-    actualCompletionDate: null,
-    qualityFlag: 'Pass',
-    remarks: 'Fabrication at Jaipur facility. Steel procurement complete.',
+    remarks: 'Sample batch electrical tests passed. Full lot assembly underway.',
   },
 ];
 
 const MOCK_CONVERSIONS: POConversion[] = [
   {
-    loiId: 'LOI-NL-001',
-    poNumber: 'PO-NL-2025-0142',
-    loiDate: '2025-06-07',
-    conversionDate: '2025-06-14',
-    loiQty: 820,
-    poQty: 825,
-    loiValueL: 4820,
-    poValueL: 4858,
-    deltaQty: 5,
-    deltaValueL: 38,
+    loiId: 'LOI-MC-001',
+    poNumber: 'PO-APAR-2026-001',
+    loiDate: '2026-10-02',
+    conversionDate: '2026-10-16',
+    loiQty: 450,
+    poQty: 450,
+    loiValueL: 2160,
+    poValueL: 2160,
+    deltaQty: 0,
+    deltaValueL: 0,
     vendor: 'Apar Industries Ltd',
     category: 'HTLS Conductor',
   },
   {
-    loiId: 'LOI-NL-002',
-    poNumber: 'PO-NL-2025-0143',
-    loiDate: '2025-06-07',
-    conversionDate: '2025-06-14',
-    loiQty: 480,
-    poQty: 480,
-    loiValueL: 980,
-    poValueL: 980,
+    loiId: 'LOI-MC-002',
+    poNumber: 'PO-VEN-2026-008',
+    loiDate: '2026-10-04',
+    conversionDate: '2026-10-18',
+    loiQty: 900,
+    poQty: 900,
+    loiValueL: 405,
+    poValueL: 405,
     deltaQty: 0,
     deltaValueL: 0,
-    vendor: 'Apar Industries Ltd',
-    category: 'OPGW Cable',
-  },
-  {
-    loiId: 'LOI-NL-003',
-    poNumber: 'PO-NL-2025-0151',
-    loiDate: '2025-06-09',
-    conversionDate: '2025-06-17',
-    loiQty: 340,
-    poQty: 338,
-    loiValueL: 12400,
-    poValueL: 12327,
-    deltaQty: -2,
-    deltaValueL: -73,
-    vendor: 'KEC International Ltd',
-    category: 'Towers & Structures',
+    vendor: 'Ensto / IAC Hardware Works',
+    category: 'Hardware & Fittings',
   },
 ];
 
@@ -176,17 +212,16 @@ const fmt = (n: number) => `₹${n.toLocaleString('en-IN')}L`;
 
 // Timeline data: LOI issuance & planned PO conversion
 const timelineData = [
-  { month: 'Jun W1', loisIssued: 2, plannedConversions: 0 },
-  { month: 'Jun W2', loisIssued: 3, plannedConversions: 2 },
-  { month: 'Jun W3', loisIssued: 2, plannedConversions: 1 },
-  { month: 'Jun W4', loisIssued: 1, plannedConversions: 0 },
-  { month: 'Jul W1', loisIssued: 0, plannedConversions: 1 },
-  { month: 'Jul W2', loisIssued: 0, plannedConversions: 2 },
-  { month: 'Aug W1', loisIssued: 0, plannedConversions: 1 },
-  { month: 'Aug W2', loisIssued: 0, plannedConversions: 1 },
+  { month: 'Oct W1', loisIssued: 3, plannedConversions: 0 },
+  { month: 'Oct W2', loisIssued: 1, plannedConversions: 1 },
+  { month: 'Oct W3', loisIssued: 2, plannedConversions: 2 },
+  { month: 'Oct W4', loisIssued: 1, plannedConversions: 1 },
+  { month: 'Nov W1', loisIssued: 0, plannedConversions: 2 },
+  { month: 'Nov W2', loisIssued: 0, plannedConversions: 1 },
 ];
 
 const EMPTY_FORM: IssueLoiForm = {
+  boqItemId: '',
   vendor: '',
   category: '',
   itemDesc: '',
@@ -199,14 +234,28 @@ const EMPTY_FORM: IssueLoiForm = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-import { usePersistentState } from '../../hooks/usePersistentState';
-
 const ManufacturingClearance: React.FC = () => {
-  const [activeTab, setActiveTab]     = useState<string>('loi-register');
-  const [showForm, setShowForm]       = useState<boolean>(false);
-  const [form, setForm]               = useState<IssueLoiForm>(EMPTY_FORM);
-  const [filterStatus, setFilterStatus] = useState<string>('All');
-  const [lois, setLois]               = usePersistentState<LOIRecord[]>('epc_gp_lois', MOCK_LOIS);
+  const [activeTab, setActiveTab]         = useState<string>('loi-register');
+  const [showForm, setShowForm]           = useState<boolean>(false);
+  const [form, setForm]                   = useState<IssueLoiForm>(EMPTY_FORM);
+  const [filterStatus, setFilterStatus]   = useState<string>('All');
+  const [lois, setLois]                   = usePersistentState<LOIRecord[]>('epc_gp_lois', MOCK_LOIS);
+  const [clientBoqs, setClientBoqs]       = usePersistentState<ClientBOQItem[]>('epc_client_boq_items', INITIAL_MSETCL_BOQ);
+
+  // Selected BOQ info for form validation
+  const selectedBoq = useMemo(() => {
+    return clientBoqs.find(b => b.id === form.boqItemId);
+  }, [clientBoqs, form.boqItemId]);
+
+  const remainingBalance = useMemo(() => {
+    if (!selectedBoq) return 0;
+    return Math.max(0, selectedBoq.contractQty - selectedBoq.orderedQty);
+  }, [selectedBoq]);
+
+  const isOverBalance = useMemo(() => {
+    const qty = Number(form.quantity) || 0;
+    return selectedBoq && qty > remainingBalance;
+  }, [form.quantity, selectedBoq, remainingBalance]);
 
   // KPI counts
   const totalLOIs        = lois.length;
@@ -220,6 +269,24 @@ const ManufacturingClearance: React.FC = () => {
     return lois.filter((l) => l.status === filterStatus);
   }, [lois, filterStatus]);
 
+  const handleBoqSelect = (boqId: string) => {
+    const b = clientBoqs.find(item => item.id === boqId);
+    if (b) {
+      const balance = Math.max(0, b.contractQty - b.orderedQty);
+      setForm(prev => ({
+        ...prev,
+        boqItemId: boqId,
+        category: b.category,
+        unit: b.uom,
+        itemDesc: b.description,
+        quantity: balance > 0 ? String(balance) : '0',
+        valueL: balance > 0 ? String(Math.round(balance * b.rateLakhs)) : '0',
+      }));
+    } else {
+      setForm(prev => ({ ...prev, boqItemId: '' }));
+    }
+  };
+
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -227,23 +294,46 @@ const ManufacturingClearance: React.FC = () => {
   };
 
   const handleSubmitLOI = () => {
+    if (!form.vendor) {
+      alert('Please select or specify a vendor.');
+      return;
+    }
+    const enteredQty = Number(form.quantity) || 100;
     const nextNum = lois.length + 1;
     const newLoi: LOIRecord = {
-      loiId: `LOI-NL-00${nextNum}`,
+      loiId: `LOI-MC-00${nextNum}`,
       date: new Date().toISOString().split('T')[0],
       vendor: form.vendor,
       vendorCode: `VEN-00${nextNum}`,
-      category: form.category,
-      itemDescription: form.itemDesc,
-      quantity: Number(form.quantity) || 100,
-      unit: form.unit || 'Nos',
+      category: form.category || (selectedBoq?.category ?? 'Turnkey Item'),
+      boqItemId: form.boqItemId || undefined,
+      itemDescription: form.itemDesc || (selectedBoq?.description ?? 'Manufacturing clearance order'),
+      quantity: enteredQty,
+      unit: form.unit || (selectedBoq?.uom ?? 'Nos'),
       estimatedValueL: Number(form.valueL) || 100,
       validTill: form.validTill || new Date(Date.now() + 60 * 86400000).toISOString().split('T')[0],
       status: 'Active',
       daysToExpiry: 60,
     };
+
     setLois(prev => [newLoi, ...prev]);
-    alert(`LOI ${newLoi.loiId} Created:\nVendor: ${form.vendor}\nCategory: ${form.category}\nValue: ₹${form.valueL}L\nValid Till: ${form.validTill}`);
+
+    // Update Mother Order BOQ consumption
+    if (form.boqItemId) {
+      setClientBoqs(prev => prev.map(b => {
+        if (b.id === form.boqItemId) {
+          const newOrdered = b.orderedQty + enteredQty;
+          return {
+            ...b,
+            orderedQty: newOrdered,
+            status: newOrdered >= b.contractQty ? 'Fully Ordered' : 'Partially Ordered',
+          };
+        }
+        return b;
+      }));
+    }
+
+    alert(`✅ LOI ${newLoi.loiId} Issued Successfully:\nVendor: ${form.vendor}\nMapped BOQ Item: ${selectedBoq ? selectedBoq.description : 'Ad-hoc'}\nQty: ${enteredQty} ${form.unit}\nEstimated Value: ₹${form.valueL} Lakhs`);
     setShowForm(false);
     setForm(EMPTY_FORM);
   };
@@ -259,7 +349,7 @@ const ManufacturingClearance: React.FC = () => {
       {/* ── Page Header ── */}
       <PageHeader
         title="LOI / Manufacturing Clearance"
-        description="BRD §2.4 · Informal instruction to vendors to commence production before official PO · NTPC Lara 765kV"
+        description="BRD §2.4 · Downstream Ordering strictly mapped against Mother Order BOQ (10 Items) · 60-Day Ground Break Track"
         actions={
           <Button
             variant="primary"
@@ -267,19 +357,82 @@ const ManufacturingClearance: React.FC = () => {
             onClick={() => setShowForm(true)}
           >
             <Plus size={14} className="inline mr-1" />
-            Issue LOI
+            Issue LOI / Clearance
           </Button>
         }
       />
 
-      {/* ── BRD Note Banner ── */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-        <strong>📋 What is Manufacturing Clearance?</strong> An LOI (Letter of Intent) / Manufacturing
-        Clearance is an <em>unofficial</em> instruction issued to vendors to commence production
-        during the Golden Period — before the official contract PO is signed. This enables early
-        factory slot booking and material procurement, reducing overall project schedule risk.
-        Manufacturing clearance unlocks the{' '}
-        <strong>25% Pre-Production Readiness Gate (BRD §2.10)</strong>.
+      {/* ── Golden Period Advance Ordering Rule & Mother Order Status Banner ── */}
+      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-xl p-5 shadow-lg">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/30 text-indigo-200 border border-indigo-400/40">
+                Golden Period Rule (Day 0 – 60)
+              </span>
+              <span className="text-xs text-indigo-300">Target Ground Break: Day 60</span>
+            </div>
+            <h3 className="text-lg font-bold text-white mt-1">
+              Downstream Manufacturing Clearances locked to Client Mother BOQ
+            </h3>
+            <p className="text-xs text-indigo-200 max-w-3xl mt-0.5">
+              To secure factory capacity without financial exposure before formal LOA sign-off:
+              <strong> 100% Conductor</strong> is allocated internally to Apar Works; <strong>75% Hardware & Insulators</strong> are placed with long-lead vendors. All internal and vendor orders validate against the 10-item Client BOQ.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-indigo-950/60 p-3 rounded-lg border border-indigo-700/50">
+            <Layers className="text-indigo-400" size={24} />
+            <div className="text-right">
+              <div className="text-xs text-indigo-300">Client Mother BOQ</div>
+              <div className="text-lg font-bold text-white">10 Turnkey Items</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Golden Item Allocation Chips */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-indigo-700/40">
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-indigo-200 font-medium">1. HTLS Conductor (Apar Internal)</span>
+              <span className="font-bold text-emerald-400">100% Locked</span>
+            </div>
+            <div className="text-base font-bold text-white">450 / 450 KM</div>
+            <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
+              <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: '100%' }}></div>
+            </div>
+            <div className="text-[11px] text-emerald-300 mt-1 flex items-center gap-1">
+              <CheckCircle2 size={12} /> Full golden period allocation issued
+            </div>
+          </div>
+
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-indigo-200 font-medium">2. Hardware Fittings & Dampers</span>
+              <span className="font-bold text-amber-300">75% Target Met</span>
+            </div>
+            <div className="text-base font-bold text-white">900 / 1,200 Sets</div>
+            <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
+              <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: '75%' }}></div>
+            </div>
+            <div className="text-[11px] text-amber-200 mt-1">
+              25% balance (300 sets) scheduled post-survey signoff
+            </div>
+          </div>
+
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-indigo-200 font-medium">3. Disc / Polymer Insulators</span>
+              <span className="font-bold text-amber-300">75% Target Met</span>
+            </div>
+            <div className="text-base font-bold text-white">3,600 / 4,800 Nos</div>
+            <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
+              <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: '75%' }}></div>
+            </div>
+            <div className="text-[11px] text-amber-200 mt-1">
+              25% balance (1,200 nos) reserved for final tower spots
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── KPI Row ── */}
@@ -301,7 +454,7 @@ const ManufacturingClearance: React.FC = () => {
               <Truck size={18} className="text-yellow-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Production Started</p>
+              <p className="text-xs text-gray-500">Active Clearances</p>
               <p className="text-2xl font-bold text-yellow-600">{activeLOIs}</p>
             </div>
           </div>
@@ -335,7 +488,7 @@ const ManufacturingClearance: React.FC = () => {
         <h3 className="font-semibold text-gray-700 mb-4">
           LOI Issuance vs Planned PO Conversion Timeline
         </h3>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={200}>
           <LineChart data={timelineData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -359,21 +512,66 @@ const ManufacturingClearance: React.FC = () => {
               strokeDasharray="4 2"
               dot={{ r: 4 }}
             />
-            <ReferenceLine x="Jun W2" stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Bulk LOI week', fontSize: 10 }} />
+            <ReferenceLine x="Oct W1" stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'Golden Period Start', fontSize: 10 }} />
           </LineChart>
         </ResponsiveContainer>
       </Card>
 
       {/* ── Issue LOI Form (modal-like) ── */}
       {showForm && (
-        <Card>
+        <Card className="border-2 border-indigo-400 bg-indigo-50/20">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">Issue New LOI / Manufacturing Clearance</h3>
+            <div>
+              <h3 className="font-semibold text-gray-800">Issue New LOI / Manufacturing Clearance</h3>
+              <p className="text-xs text-gray-500">All LOIs must consume against an authorized Mother BOQ line item</p>
+            </div>
             <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">
               <X size={18} />
             </button>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Mother BOQ Selector */}
+            <div className="sm:col-span-2 bg-white p-3 rounded-lg border border-indigo-200">
+              <label className="block text-xs font-bold text-indigo-900 mb-1">
+                Select Mother Order Client BOQ Item (10 Master Items) *
+              </label>
+              <select
+                value={form.boqItemId}
+                onChange={(e) => handleBoqSelect(e.target.value)}
+                className="w-full border border-indigo-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+              >
+                <option value="">-- Choose from Client Mother Order BOQ --</option>
+                {clientBoqs.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    Item #{b.itemNo}: {b.description} ({b.contractQty} {b.uom} | Ordered: {b.orderedQty} {b.uom})
+                  </option>
+                ))}
+              </select>
+
+              {selectedBoq && (
+                <div className="mt-2.5 p-2.5 bg-indigo-50/80 rounded-md border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">Contracted:</span>{' '}
+                    <strong className="text-gray-800">{selectedBoq.contractQty} {selectedBoq.uom}</strong>
+                    <span className="mx-2 text-gray-300">|</span>
+                    <span className="text-gray-500">Already Ordered:</span>{' '}
+                    <strong className="text-indigo-700">{selectedBoq.orderedQty} {selectedBoq.uom}</strong>
+                    <span className="mx-2 text-gray-300">|</span>
+                    <span className="text-gray-500">Remaining Balance:</span>{' '}
+                    <strong className={remainingBalance > 0 ? 'text-emerald-700 font-bold' : 'text-red-600'}>
+                      {remainingBalance} {selectedBoq.uom}
+                    </strong>
+                  </div>
+                  {isOverBalance && (
+                    <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                      ⚠️ Order exceeds available Mother BOQ balance!
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Vendor *</label>
               <select
@@ -383,28 +581,27 @@ const ManufacturingClearance: React.FC = () => {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">Select vendor...</option>
-                <option>Apar Industries Ltd (APR-001)</option>
-                <option>KEC International Ltd (KEC-002)</option>
+                <option>Apar Industries Ltd (Internal Works)</option>
+                <option>Ensto / IAC Hardware Works</option>
                 <option>Aditya Birla Insulators (ABI-055)</option>
+                <option>KEC International Ltd (KEC-002)</option>
                 <option>Polycab India Ltd (PCB-027)</option>
+                <option>Sterlite Technologies Ltd</option>
               </select>
             </div>
+
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Category *</label>
-              <select
+              <input
+                type="text"
                 name="category"
                 value={form.category}
                 onChange={handleFormChange}
+                placeholder="Conductor, Hardware, Insulators..."
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Select category...</option>
-                <option>HTLS Conductor</option>
-                <option>OPGW Cable</option>
-                <option>Hardware & Fittings</option>
-                <option>Insulators (Disc/Polymer)</option>
-                <option>Towers & Structures</option>
-              </select>
+              />
             </div>
+
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Item Description *</label>
               <input
@@ -412,10 +609,11 @@ const ManufacturingClearance: React.FC = () => {
                 name="itemDesc"
                 value={form.itemDesc}
                 onChange={handleFormChange}
-                placeholder="e.g. HTLS ACCC Drake Conductor 4000m/drum"
+                placeholder="e.g. HTLS INVAR Drake Conductor 4000m/drum"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+
             <div className="flex gap-2">
               <div className="flex-1">
                 <label className="block text-xs font-medium text-gray-600 mb-1">Quantity *</label>
@@ -439,6 +637,7 @@ const ManufacturingClearance: React.FC = () => {
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Estimated Value (₹ Lakhs) *</label>
               <input
@@ -449,6 +648,7 @@ const ManufacturingClearance: React.FC = () => {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">LOI Valid Till *</label>
               <input
@@ -459,21 +659,23 @@ const ManufacturingClearance: React.FC = () => {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+
             <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-gray-600 mb-1">Justification for Early Start *</label>
               <textarea
                 name="justification"
                 value={form.justification}
                 onChange={handleFormChange}
-                rows={3}
-                placeholder="Reason for issuing LOI before official PO (e.g., factory slot booking, long-lead item)..."
+                rows={2}
+                placeholder="Golden Period allocation reason (e.g. factory slot booking for 60-day ground break deadline)..."
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
+
           <div className="flex gap-3 mt-4 justify-end">
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button variant="primary" size="sm" onClick={handleSubmitLOI}>Issue LOI</Button>
+            <Button variant="primary" size="sm" onClick={handleSubmitLOI}>Issue LOI & Update Mother BOQ</Button>
           </div>
         </Card>
       )}
@@ -489,7 +691,10 @@ const ManufacturingClearance: React.FC = () => {
       {activeTab === 'loi-register' && (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-700">LOI Register — NTPC Lara 765kV</h3>
+            <div>
+              <h3 className="font-semibold text-gray-700">LOI / Manufacturing Clearance Register</h3>
+              <p className="text-xs text-gray-500">All orders tracked against client contract & Mother Order BOQ</p>
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Filter:</span>
               <select
@@ -508,6 +713,7 @@ const ManufacturingClearance: React.FC = () => {
               <thead>
                 <tr className="bg-gray-50 text-left">
                   <th className="px-3 py-2 text-gray-600 font-medium">LOI ID</th>
+                  <th className="px-3 py-2 text-gray-600 font-medium">Mother BOQ</th>
                   <th className="px-3 py-2 text-gray-600 font-medium">Date</th>
                   <th className="px-3 py-2 text-gray-600 font-medium">Vendor</th>
                   <th className="px-3 py-2 text-gray-600 font-medium">Category</th>
@@ -517,41 +723,53 @@ const ManufacturingClearance: React.FC = () => {
                   <th className="px-3 py-2 text-gray-600 font-medium">Value (₹L)</th>
                   <th className="px-3 py-2 text-gray-600 font-medium">Valid Till</th>
                   <th className="px-3 py-2 text-gray-600 font-medium">Status</th>
-                  <th className="px-3 py-2 text-gray-600 font-medium">Days to Expiry</th>
+                  <th className="px-3 py-2 text-gray-600 font-medium">Days Left</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredLOIs.map((loi) => (
-                  <tr key={loi.loiId} className="border-t hover:bg-gray-50">
-                    <td className="px-3 py-2 font-mono text-indigo-700">{loi.loiId}</td>
-                    <td className="px-3 py-2 text-gray-600">{loi.date}</td>
-                    <td className="px-3 py-2">
-                      <div className="font-medium text-gray-800">{loi.vendor}</div>
-                      <div className="text-xs text-gray-400">{loi.vendorCode}</div>
-                    </td>
-                    <td className="px-3 py-2 text-gray-600 text-xs">{loi.category}</td>
-                    <td className="px-3 py-2 text-gray-600 text-xs max-w-xs truncate" title={loi.itemDescription}>
-                      {loi.itemDescription}
-                    </td>
-                    <td className="px-3 py-2 text-gray-700">{loi.quantity.toLocaleString('en-IN')}</td>
-                    <td className="px-3 py-2 text-gray-500">{loi.unit}</td>
-                    <td className="px-3 py-2 font-semibold text-gray-700">{fmt(loi.estimatedValueL)}</td>
-                    <td className="px-3 py-2 text-gray-600">{loi.validTill}</td>
-                    <td className="px-3 py-2">
-                      <Badge variant={LOI_STATUS_BADGE[loi.status]}>{loi.status}</Badge>
-                    </td>
-                    <td className="px-3 py-2">
-                      {loi.daysToExpiry !== null ? (
-                        <span className={`font-semibold text-sm ${loi.daysToExpiry <= 14 ? 'text-red-600' : 'text-yellow-600'}`}>
-                          {loi.daysToExpiry}d
-                          {loi.daysToExpiry <= 14 && ' ⚠'}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {filteredLOIs.map((loi) => {
+                  const mappedBoq = clientBoqs.find(b => b.id === loi.boqItemId);
+                  return (
+                    <tr key={loi.loiId} className="border-t hover:bg-gray-50">
+                      <td className="px-3 py-2 font-mono text-indigo-700 font-semibold">{loi.loiId}</td>
+                      <td className="px-3 py-2">
+                        {mappedBoq ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                            #{mappedBoq.itemNo} {mappedBoq.category}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Ad-hoc</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-gray-600">{loi.date}</td>
+                      <td className="px-3 py-2">
+                        <div className="font-medium text-gray-800">{loi.vendor}</div>
+                        <div className="text-xs text-gray-400">{loi.vendorCode}</div>
+                      </td>
+                      <td className="px-3 py-2 text-gray-600 text-xs">{loi.category}</td>
+                      <td className="px-3 py-2 text-gray-600 text-xs max-w-xs truncate" title={loi.itemDescription}>
+                        {loi.itemDescription}
+                      </td>
+                      <td className="px-3 py-2 text-gray-700 font-semibold">{loi.quantity.toLocaleString('en-IN')}</td>
+                      <td className="px-3 py-2 text-gray-500">{loi.unit}</td>
+                      <td className="px-3 py-2 font-semibold text-gray-700">{fmt(loi.estimatedValueL)}</td>
+                      <td className="px-3 py-2 text-gray-600">{loi.validTill}</td>
+                      <td className="px-3 py-2">
+                        <Badge variant={LOI_STATUS_BADGE[loi.status]}>{loi.status}</Badge>
+                      </td>
+                      <td className="px-3 py-2">
+                        {loi.daysToExpiry !== null ? (
+                          <span className={`font-semibold text-sm ${loi.daysToExpiry <= 14 ? 'text-red-600' : 'text-yellow-600'}`}>
+                            {loi.daysToExpiry}d
+                            {loi.daysToExpiry <= 14 && ' ⚠'}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -563,9 +781,8 @@ const ManufacturingClearance: React.FC = () => {
         <div className="space-y-4">
           <Card>
             <h3 className="font-semibold text-gray-700 mb-4">
-              Production Progress — Active LOIs
+              Production Progress — Golden Period Manufacturing Clearances
             </h3>
-            {/* Production progress bar chart */}
             <ResponsiveContainer width="100%" height={180}>
               <BarChart
                 data={MOCK_PRODUCTION.map((p) => ({ name: p.loiId, pct: p.percentComplete }))}
@@ -585,12 +802,12 @@ const ManufacturingClearance: React.FC = () => {
             {MOCK_PRODUCTION.map((prod) => (
               <Card key={prod.loiId}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-sm text-indigo-700">{prod.loiId}</span>
+                  <span className="font-mono text-sm text-indigo-700 font-semibold">{prod.loiId}</span>
                   <Badge variant={QUALITY_BADGE[prod.qualityFlag]}>
                     {prod.qualityFlag}
                   </Badge>
                 </div>
-                <p className="text-xs text-gray-500">{prod.vendor}</p>
+                <p className="text-xs font-medium text-gray-700">{prod.vendor}</p>
                 <p className="text-xs text-gray-500 mb-3">{prod.category}</p>
 
                 {/* Progress bar */}
@@ -656,7 +873,7 @@ const ManufacturingClearance: React.FC = () => {
                 {MOCK_CONVERSIONS.map((conv) => (
                   <tr key={conv.loiId} className="border-t hover:bg-gray-50">
                     <td className="px-3 py-2 font-mono text-indigo-700">{conv.loiId}</td>
-                    <td className="px-3 py-2 font-mono text-green-700">{conv.poNumber}</td>
+                    <td className="px-3 py-2 font-mono text-green-700 font-medium">{conv.poNumber}</td>
                     <td className="px-3 py-2 text-gray-700 text-xs">{conv.vendor}</td>
                     <td className="px-3 py-2 text-gray-600 text-xs">{conv.category}</td>
                     <td className="px-3 py-2 text-gray-600">{conv.loiDate}</td>
@@ -693,4 +910,3 @@ const ManufacturingClearance: React.FC = () => {
 };
 
 export default ManufacturingClearance;
-

@@ -16,14 +16,185 @@ import {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface WBSActivity {
-  id: string; wbsCode: string; segment: string; activity: string; category: string;
-  contractualStart: string; contractualEnd: string; accStart: string; accEnd: string;
-  progress: number; status: 'On Track'|'At Risk'|'Delayed'|'Complete';
-  resourceLoading: number; responsibleTeam: string;
+  id: string;
+  wbsCode: string;
+  l2MilestoneCode?: string; // Contractual L2 Milestone (L2-01 to L2-10)
+  segment: string;
+  activity: string;
+  category: string;
+  contractualStart: string;
+  contractualEnd: string;
+  accStart: string;
+  accEnd: string;
+  progress: number;
+  status: 'On Track' | 'At Risk' | 'Delayed' | 'Complete';
+  resourceLoading: number;
+  responsibleTeam: string;
 }
 
 // ── Mock Data ───────────────────────────────────────────────────────────────
-const INITIAL_WBS: WBSActivity[] = [];
+const INITIAL_WBS: WBSActivity[] = [
+  {
+    id: '1',
+    wbsCode: '1.01',
+    l2MilestoneCode: 'L2-01',
+    segment: 'Turnkey Contract',
+    activity: 'Letter of Award (LOA) & Contract Signing with MSETCL',
+    category: 'Contracts',
+    contractualStart: '2026-09-01',
+    contractualEnd: '2026-09-05',
+    accStart: '2026-09-01',
+    accEnd: '2026-09-05',
+    progress: 100,
+    status: 'Complete',
+    resourceLoading: 4,
+    responsibleTeam: 'Contracts & Legal Team',
+  },
+  {
+    id: '2',
+    wbsCode: '1.02',
+    l2MilestoneCode: 'L2-02',
+    segment: 'Turnkey Contract',
+    activity: 'Mother Order BOQ Feed (10 Items) & CPBG Submission',
+    category: 'Procurement',
+    contractualStart: '2026-09-06',
+    contractualEnd: '2026-09-15',
+    accStart: '2026-09-06',
+    accEnd: '2026-09-12',
+    progress: 100,
+    status: 'Complete',
+    resourceLoading: 6,
+    responsibleTeam: 'Finance & Procurement',
+  },
+  {
+    id: '3',
+    wbsCode: '1.03',
+    l2MilestoneCode: 'L2-03',
+    segment: 'Manufacturing',
+    activity: 'Advance Mfg Clearance: Conductor 100% (Apar) & HW 75%',
+    category: 'Procurement',
+    contractualStart: '2026-09-16',
+    contractualEnd: '2026-09-30',
+    accStart: '2026-09-14',
+    accEnd: '2026-09-25',
+    progress: 100,
+    status: 'Complete',
+    resourceLoading: 8,
+    responsibleTeam: 'SCM & Plant Management',
+  },
+  {
+    id: '4',
+    wbsCode: '1.04',
+    l2MilestoneCode: 'L2-04',
+    segment: 'Seg 1 (0-15km)',
+    activity: 'Detailed Route Walkover, Check Survey & Tower Spotting',
+    category: 'Engineering',
+    contractualStart: '2026-09-20',
+    contractualEnd: '2026-10-15',
+    accStart: '2026-09-18',
+    accEnd: '2026-10-10',
+    progress: 85,
+    status: 'On Track',
+    resourceLoading: 12,
+    responsibleTeam: 'Survey & Engineering Team',
+  },
+  {
+    id: '5',
+    wbsCode: '1.05',
+    l2MilestoneCode: 'L2-05',
+    segment: 'Site Logistics',
+    activity: 'Central Site Store & Yard Preparation (Inventory Controller)',
+    category: 'Procurement',
+    contractualStart: '2026-10-01',
+    contractualEnd: '2026-10-25',
+    accStart: '2026-09-28',
+    accEnd: '2026-10-20',
+    progress: 75,
+    status: 'On Track',
+    resourceLoading: 10,
+    responsibleTeam: 'Inventory Controller & Stores',
+  },
+  {
+    id: '6',
+    wbsCode: '1.06',
+    l2MilestoneCode: 'L2-06',
+    segment: 'Statutory',
+    activity: 'Statutory Track A: CEIG Contractor License Application',
+    category: 'Electrical',
+    contractualStart: '2026-10-05',
+    contractualEnd: '2026-11-05',
+    accStart: '2026-10-01',
+    accEnd: '2026-10-30',
+    progress: 60,
+    status: 'On Track',
+    resourceLoading: 4,
+    responsibleTeam: 'Electrical Statutory Team',
+  },
+  {
+    id: '7',
+    wbsCode: '1.07',
+    l2MilestoneCode: 'L2-07',
+    segment: 'Statutory',
+    activity: 'Statutory Track B: Client Form V & CLRA Labour License',
+    category: 'Civil',
+    contractualStart: '2026-10-08',
+    contractualEnd: '2026-11-05',
+    accStart: '2026-10-05',
+    accEnd: '2026-11-02',
+    progress: 40,
+    status: 'At Risk',
+    resourceLoading: 4,
+    responsibleTeam: 'Labour Compliance Team',
+  },
+  {
+    id: '8',
+    wbsCode: '1.08',
+    l2MilestoneCode: 'L2-08',
+    segment: 'QA/QC & Utility',
+    activity: 'Supplier Works Joint FAT & MSETCL DI Issuance',
+    category: 'Electrical',
+    contractualStart: '2026-10-15',
+    contractualEnd: '2026-11-08',
+    accStart: '2026-10-12',
+    accEnd: '2026-11-02',
+    progress: 50,
+    status: 'On Track',
+    resourceLoading: 6,
+    responsibleTeam: 'Marketing & QA/QC',
+  },
+  {
+    id: '9',
+    wbsCode: '1.09',
+    l2MilestoneCode: 'L2-09',
+    segment: 'Seg 1 (0-15km)',
+    activity: 'Civil Gang Mobilization, Batching Plant & Shuttering Setup',
+    category: 'Civil',
+    contractualStart: '2026-10-20',
+    contractualEnd: '2026-11-12',
+    accStart: '2026-10-18',
+    accEnd: '2026-11-08',
+    progress: 25,
+    status: 'On Track',
+    resourceLoading: 18,
+    responsibleTeam: 'Civil Construction Gangs',
+  },
+  {
+    id: '10',
+    wbsCode: '1.10',
+    l2MilestoneCode: 'L2-10',
+    segment: 'Seg 1 (0-15km)',
+    activity: '60-Day Ground Break: First Tower Foundation Kickoff (AP-01)',
+    category: 'Civil',
+    contractualStart: '2026-11-15',
+    contractualEnd: '2026-11-20',
+    accStart: '2026-11-10',
+    accEnd: '2026-11-15',
+    progress: 0,
+    status: 'On Track',
+    resourceLoading: 24,
+    responsibleTeam: 'Civil Foundations Wing',
+  },
+];
 
 const ganttMonths = ['Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27'];
 const CAT_COLOR: Record<string,string> = { Civil:'#6366f1', Mechanical:'#0891b2', Electrical:'#7c3aed', 'Bay/Sub':'#d97706', OPGW:'#059669', Procurement:'#dc2626' };
@@ -137,8 +308,70 @@ export default function WBSManager() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="WBS & L2 Schedule (BRD §3.1–3.2)" description="Dual baseline: Contractual vs Accelerated · Multi-segment roll-up" />
-        <ReadOnlyBanner moduleId="4.1" />
+      <PageHeader
+        title="WBS & L2 Master Schedule (BRD §3.1–3.2)"
+        description="Contractual Baseline signed at Contract Award · Governed by committed Level 2 Master Schedule"
+      />
+      <ReadOnlyBanner moduleId="4.1" />
+
+      {/* ── 60-Day Countdown to Ground Breaking Banner ── */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/50 rounded-xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400 text-slate-950 uppercase tracking-wide">
+                Mission 60 Days
+              </span>
+              <span className="text-xs text-indigo-300 font-medium">
+                Signed L2 Contract Schedule Baseline
+              </span>
+            </div>
+            <h3 className="text-xl font-black text-white tracking-tight">
+              Hit the Ground in 60 Days: First Tower Foundation Kickoff
+            </h3>
+            <p className="text-xs text-indigo-200 mt-1 max-w-2xl">
+              Contract Award (Day 0) → Mother Order Feed (Day 5) → Advance Mfg Clearance (Day 15) → Statutory Track A/B (Day 40) → Ground Break (Day 60).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-6 bg-white/5 border border-white/10 px-5 py-3 rounded-xl backdrop-blur-md">
+            <div className="text-center">
+              <div className="text-2xl font-black text-amber-400">Day 42</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Elapsed</div>
+            </div>
+            <div className="h-8 w-px bg-white/20"></div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-emerald-400">18 Days</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Remaining</div>
+            </div>
+            <div className="h-8 w-px bg-white/20"></div>
+            <div className="text-right">
+              <div className="text-xs text-indigo-300 font-semibold">Target Date</div>
+              <div className="text-sm font-bold text-white">15-Nov-2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-indigo-800/50 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-4 text-indigo-200">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+              <strong>Mother Order Feed:</strong> Complete
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+              <strong>100% Conductor / 75% HW:</strong> Locked
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+              <strong>Statutory Tracks (CEIG & Form V):</strong> Active
+            </span>
+          </div>
+          <span className="text-amber-300 font-bold text-[11px]">
+            70% of 60-Day Pre-Construction Window Consumed
+          </span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
@@ -182,7 +415,7 @@ export default function WBSManager() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    {['WBS','Segment','Activity','Cat','Contractual Start','Contractual End','Acc. Start','Acc. End','Float (days)','Progress','Resources','Status', ...(canUpdate||canRemove?['Actions']:[])].map(h=>(
+                    {['L2 Code','WBS','Segment','Activity','Cat','Contractual Start','Contractual End','Acc. Start','Acc. End','Float (days)','Progress','Resources','Status', ...(canUpdate||canRemove?['Actions']:[])].map(h=>(
                       <th key={h} className="px-3 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -194,6 +427,15 @@ export default function WBSManager() {
                     const float = cDays - aDays;
                     return (
                       <tr key={w.id} className={`hover:bg-slate-50 ${w.status==='Delayed'?'bg-red-50/30':w.status==='At Risk'?'bg-amber-50/20':''}`}>
+                        <td className="px-3 py-3">
+                          {w.l2MilestoneCode ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-700 font-mono">
+                              {w.l2MilestoneCode}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-xs font-mono">—</span>
+                          )}
+                        </td>
                         <td className="px-3 py-3 font-mono text-xs text-indigo-600">{w.wbsCode}</td>
                         <td className="px-3 py-3 text-xs text-slate-600 max-w-[110px] truncate" title={w.segment}>{w.segment}</td>
                         <td className="px-3 py-3 text-xs font-medium text-slate-800">{w.activity}</td>
@@ -246,7 +488,7 @@ export default function WBSManager() {
                 <div className="px-2">Activity</div>
                 {ganttMonths.map(m=><div key={m} className="text-center">{m}</div>)}
               </div>
-              {INITIAL_WBS.map(w=>{
+              {wbsData.map(w=>{
                 const cLeft = monthsFrom(w.contractualStart);
                 const cWidth = Math.max(0.3, monthsFrom(w.contractualEnd) - cLeft);
                 const aLeft = monthsFrom(w.accStart);
@@ -292,7 +534,7 @@ export default function WBSManager() {
         <Card className="p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">Resource Loading by Category (People)</h3>
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={cats.map(c=>({cat:c, loading:INITIAL_WBS.filter(w=>w.category===c).reduce((s,w)=>s+w.resourceLoading,0)}))} margin={{top:4,right:8,left:-20,bottom:0}}>
+            <BarChart data={cats.map(c=>({cat:c, loading:wbsData.filter(w=>w.category===c).reduce((s,w)=>s+w.resourceLoading,0)}))} margin={{top:4,right:8,left:-20,bottom:0}}>
               <XAxis dataKey="cat" tick={{fontSize:11}}/>
               <YAxis tick={{fontSize:11}} allowDecimals={false}/>
               <Tooltip/>
