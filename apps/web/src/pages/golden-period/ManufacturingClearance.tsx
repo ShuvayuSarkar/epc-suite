@@ -349,7 +349,7 @@ const ManufacturingClearance: React.FC = () => {
       {/* ── Page Header ── */}
       <PageHeader
         title="LOI / Manufacturing Clearance"
-        description="BRD §2.4 · Downstream Ordering strictly mapped against Mother Order BOQ (10 Items) · 60-Day Ground Break Track"
+        description="BRD §2.4 · Downstream Ordering strictly mapped against Mother Order Client BOQ · 60-Day Ground Break Track"
         actions={
           <Button
             variant="primary"
@@ -362,7 +362,7 @@ const ManufacturingClearance: React.FC = () => {
         }
       />
 
-      {/* ── Golden Period Advance Ordering Rule & Mother Order Status Banner ── */}
+      {/* ── Mother Order BOQ Dynamic Allocation Banner ── */}
       <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-xl p-5 shadow-lg">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
@@ -376,63 +376,55 @@ const ManufacturingClearance: React.FC = () => {
               Downstream Manufacturing Clearances locked to Client Mother BOQ
             </h3>
             <p className="text-xs text-indigo-200 max-w-3xl mt-0.5">
-              To secure factory capacity without financial exposure before formal LOA sign-off:
-              <strong> 100% Conductor</strong> is allocated internally to Apar Works; <strong>75% Hardware & Insulators</strong> are placed with long-lead vendors. All internal and vendor orders validate against the 10-item Client BOQ.
+              Advance factory slot bookings and manufacturing clearances issued during the Golden Period must consume strictly against authorized Client Mother BOQ line items. Downstream purchase orders and internal works LOIs dynamically validate against remaining contract line balances.
             </p>
           </div>
           <div className="flex items-center gap-2 bg-indigo-950/60 p-3 rounded-lg border border-indigo-700/50">
             <Layers className="text-indigo-400" size={24} />
             <div className="text-right">
               <div className="text-xs text-indigo-300">Client Mother BOQ</div>
-              <div className="text-lg font-bold text-white">10 Turnkey Items</div>
+              <div className="text-lg font-bold text-white">{clientBoqs.length} Line Items</div>
             </div>
           </div>
         </div>
 
-        {/* 3 Golden Item Allocation Chips */}
+        {/* Dynamic Mother BOQ Line Item Allocation Chips */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-indigo-700/40">
-          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-indigo-200 font-medium">1. HTLS Conductor (Apar Internal)</span>
-              <span className="font-bold text-emerald-400">100% Locked</span>
-            </div>
-            <div className="text-base font-bold text-white">450 / 450 KM</div>
-            <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
-              <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: '100%' }}></div>
-            </div>
-            <div className="text-[11px] text-emerald-300 mt-1 flex items-center gap-1">
-              <CheckCircle2 size={12} /> Full golden period allocation issued
-            </div>
-          </div>
-
-          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-indigo-200 font-medium">2. Hardware Fittings & Dampers</span>
-              <span className="font-bold text-amber-300">75% Target Met</span>
-            </div>
-            <div className="text-base font-bold text-white">900 / 1,200 Sets</div>
-            <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
-              <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: '75%' }}></div>
-            </div>
-            <div className="text-[11px] text-amber-200 mt-1">
-              25% balance (300 sets) scheduled post-survey signoff
-            </div>
-          </div>
-
-          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-indigo-200 font-medium">3. Disc / Polymer Insulators</span>
-              <span className="font-bold text-amber-300">75% Target Met</span>
-            </div>
-            <div className="text-base font-bold text-white">3,600 / 4,800 Nos</div>
-            <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
-              <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: '75%' }}></div>
-            </div>
-            <div className="text-[11px] text-amber-200 mt-1">
-              25% balance (1,200 nos) reserved for final tower spots
-            </div>
-          </div>
+          {clientBoqs.slice(0, 3).map((item) => {
+            const pct = item.contractQty > 0 ? Math.min(100, Math.round((item.orderedQty / item.contractQty) * 100)) : 0;
+            const balance = Math.max(0, item.contractQty - item.orderedQty);
+            return (
+              <div key={item.id} className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-indigo-200 font-medium truncate max-w-[190px]" title={item.description}>
+                    #{item.itemNo}. {item.description}
+                  </span>
+                  <span className={`font-bold ${pct >= 100 ? 'text-emerald-400' : pct > 0 ? 'text-amber-300' : 'text-slate-300'}`}>
+                    {pct}% Ordered
+                  </span>
+                </div>
+                <div className="text-base font-bold text-white">
+                  {item.orderedQty.toLocaleString()} / {item.contractQty.toLocaleString()} {item.uom}
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
+                  <div
+                    className={`h-1.5 rounded-full ${pct >= 100 ? 'bg-emerald-400' : pct > 0 ? 'bg-amber-400' : 'bg-slate-400'}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="text-[11px] text-indigo-200 mt-1 flex items-center justify-between">
+                  <span>Balance: {balance.toLocaleString()} {item.uom}</span>
+                  <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-indigo-200">{item.category}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
+        {clientBoqs.length > 3 && (
+          <div className="text-right text-[11px] text-indigo-300 mt-2">
+            Showing top 3 of {clientBoqs.length} Mother BOQ line items
+          </div>
+        )}
       </div>
 
       {/* ── KPI Row ── */}
@@ -534,7 +526,7 @@ const ManufacturingClearance: React.FC = () => {
             {/* Mother BOQ Selector */}
             <div className="sm:col-span-2 bg-white p-3 rounded-lg border border-indigo-200">
               <label className="block text-xs font-bold text-indigo-900 mb-1">
-                Select Mother Order Client BOQ Item (10 Master Items) *
+                Select Mother Order Client BOQ Item *
               </label>
               <select
                 value={form.boqItemId}

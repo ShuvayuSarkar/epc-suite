@@ -1,7 +1,7 @@
 export interface ClientBOQItem {
   id: string;
   contractId: string;
-  itemNo: number; // 1 to 10
+  itemNo: number;
   itemCode: string;
   description: string;
   category: string;
@@ -10,11 +10,12 @@ export interface ClientBOQItem {
   rateLakhs: number;
   totalValueLakhs: number;
   orderedQty: number; // Sum of internal LOIs + Supplier POs
-  diQty: number; // Quantity authorized under MSETCL Dispatch Instructions
+  diQty: number; // Quantity authorized under Utility Dispatch Instructions
   dispatchQty: number; // Quantity received at site store
   status: 'Unordered' | 'Partially Ordered' | 'Fully Ordered' | 'DI Cleared' | 'Delivered';
 }
 
+// Default initial sample data (can be customized, added to, or deleted by user)
 export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
   {
     id: 'BOQ-01',
@@ -27,7 +28,7 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     uom: 'KM',
     rateLakhs: 4.8,
     totalValueLakhs: 2160,
-    orderedQty: 450, // 100% ordered via internal LOI
+    orderedQty: 450,
     diQty: 0,
     dispatchQty: 0,
     status: 'Fully Ordered',
@@ -43,7 +44,7 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     uom: 'Sets',
     rateLakhs: 0.45,
     totalValueLakhs: 540,
-    orderedQty: 900, // 75% ordered
+    orderedQty: 900,
     diQty: 0,
     dispatchQty: 0,
     status: 'Partially Ordered',
@@ -59,7 +60,7 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     uom: 'Nos',
     rateLakhs: 0.08,
     totalValueLakhs: 384,
-    orderedQty: 3600, // 75% ordered
+    orderedQty: 3600,
     diQty: 0,
     dispatchQty: 0,
     status: 'Partially Ordered',
@@ -101,12 +102,12 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     contractId: 'CTR-2026-001',
     itemNo: 6,
     itemCode: 'MSETCL-MAT-06',
-    description: '24-Core Optical Ground Wire (OPGW) & Joint Boxes',
+    description: '24-Fiber OPGW Optical Ground Wire',
     category: 'OPGW',
     contractQty: 85,
     uom: 'KM',
-    rateLakhs: 2.4,
-    totalValueLakhs: 204,
+    rateLakhs: 1.6,
+    totalValueLakhs: 136,
     orderedQty: 0,
     diQty: 0,
     dispatchQty: 0,
@@ -117,12 +118,12 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     contractId: 'CTR-2026-001',
     itemNo: 7,
     itemCode: 'MSETCL-MAT-07',
-    description: '220kV Substation Terminal Bay Equipment Augmentation',
-    category: 'Bay Equipment',
+    description: 'Substation Bay Augmentation & Terminal Equipment',
+    category: 'Substation',
     contractQty: 2,
     uom: 'Bays',
-    rateLakhs: 185,
-    totalValueLakhs: 370,
+    rateLakhs: 320,
+    totalValueLakhs: 640,
     orderedQty: 0,
     diQty: 0,
     dispatchQty: 0,
@@ -133,13 +134,13 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     contractId: 'CTR-2026-001',
     itemNo: 8,
     itemCode: 'MSETCL-SRV-01',
-    description: 'Detailed Route Survey, Tower Spotting & Soil Testing',
+    description: 'Check Survey, Soil Testing & Foundation Spotting',
     category: 'Survey',
     contractQty: 85,
     uom: 'KM',
-    rateLakhs: 0.65,
-    totalValueLakhs: 55.25,
-    orderedQty: 85, // 100% ordered
+    rateLakhs: 0.6,
+    totalValueLakhs: 51,
+    orderedQty: 85,
     diQty: 0,
     dispatchQty: 0,
     status: 'Fully Ordered',
@@ -148,13 +149,13 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     id: 'BOQ-09',
     contractId: 'CTR-2026-001',
     itemNo: 9,
-    itemCode: 'MSETCL-SRV-02',
-    description: 'Civil Works: Foundation Excavation, Concreting & Stub Setting',
-    category: 'Civil Works',
+    itemCode: 'MSETCL-CIV-01',
+    description: 'Tower Foundation Civil Works (Excavation, Reinforcement, Concreting)',
+    category: 'Civil',
     contractQty: 240,
     uom: 'Locations',
-    rateLakhs: 3.5,
-    totalValueLakhs: 840,
+    rateLakhs: 4.2,
+    totalValueLakhs: 1008,
     orderedQty: 0,
     diQty: 0,
     dispatchQty: 0,
@@ -164,13 +165,13 @@ export const INITIAL_MSETCL_BOQ: ClientBOQItem[] = [
     id: 'BOQ-10',
     contractId: 'CTR-2026-001',
     itemNo: 10,
-    itemCode: 'MSETCL-SRV-03',
-    description: 'Tower Erection, HTLS Stringing, Clamping, Testing & Commissioning',
-    category: 'Erection & Stringing',
+    itemCode: 'MSETCL-INS-01',
+    description: 'Tower Erection, Stringing & Final Commissioning',
+    category: 'Installation',
     contractQty: 85,
     uom: 'KM',
-    rateLakhs: 4.2,
-    totalValueLakhs: 357,
+    rateLakhs: 6.5,
+    totalValueLakhs: 552.5,
     orderedQty: 0,
     diQty: 0,
     dispatchQty: 0,

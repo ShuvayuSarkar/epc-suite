@@ -55,7 +55,7 @@ const INITIAL_WBS: WBSActivity[] = [
     wbsCode: '1.02',
     l2MilestoneCode: 'L2-02',
     segment: 'Turnkey Contract',
-    activity: 'Mother Order BOQ Feed (10 Items) & CPBG Submission',
+    activity: 'Mother Order BOQ Feed & CPBG Submission',
     category: 'Procurement',
     contractualStart: '2026-09-06',
     contractualEnd: '2026-09-15',
@@ -71,7 +71,7 @@ const INITIAL_WBS: WBSActivity[] = [
     wbsCode: '1.03',
     l2MilestoneCode: 'L2-03',
     segment: 'Manufacturing',
-    activity: 'Advance Mfg Clearance: Conductor 100% (Apar) & HW 75%',
+    activity: 'Advance Mfg Clearance for Long-Lead Items & Internal Works',
     category: 'Procurement',
     contractualStart: '2026-09-16',
     contractualEnd: '2026-09-30',
@@ -360,7 +360,7 @@ export default function WBSManager() {
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
-              <strong>100% Conductor / 75% HW:</strong> Locked
+              <strong>Advance Clearances:</strong> Active
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>

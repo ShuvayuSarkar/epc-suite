@@ -162,7 +162,7 @@ export default function ContractList() {
     <div className="space-y-6">
       <PageHeader 
         title="Contract Management & Mother Orders" 
-        description="Master Client Contracts · Mother Order 10-Item BOQ · Downstream PO Constraints"
+        description="Master Client Contracts · Mother Order Client BOQ · Downstream PO Constraints"
         action={
           canCreate ? {
             label: activeTab === 'contracts' ? '+ New Contract' : '+ Feed Client BOQ Item',
@@ -208,7 +208,7 @@ export default function ContractList() {
                 <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded font-mono">{data[0]?.id || 'CTR-2026-001'}</span>
               </div>
               <p className="text-xs text-slate-600 mt-1">
-                <strong>Mother Order Rule:</strong> Internal LOIs (Apar Conductor) and buyout POs (Hardware, Insulators, Towers) can ONLY be placed against these authorized client BOQ items.
+                <strong>Mother Order Rule:</strong> Internal LOIs and downstream vendor purchase orders can ONLY be placed against these authorized client BOQ items.
               </p>
             </div>
             <div className="flex items-center gap-3">

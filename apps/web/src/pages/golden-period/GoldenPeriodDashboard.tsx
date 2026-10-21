@@ -73,9 +73,9 @@ const CHECKLIST: CheckItem[] = [
   {
     id: '2.4', ref: 'BRD 2.4', title: 'Mother BOQ & Advance Mfg Clearance',
     moduleId: '4.14', module: 'LOI / Mfg Clearance',
-    description: 'Downstream manufacturing clearance strictly mapped to Client Mother BOQ (10 items): 100% Conductor allocated to Apar internal works; 75% Hardware & Insulators allocated to secure factory slots.',
+    description: 'Downstream manufacturing clearances and internal supplier orders strictly mapped and validated against authorized Client Mother BOQ line items to book early factory slots within budget.',
     route: '/golden-period/manufacturing-clearance', sla: '≤15 days from award',
-    status: 'Complete', progress: 100, keyMetric: '100% Conductor (450km) & 75% HW (900 sets) locked to Mother BOQ',
+    status: 'Complete', progress: 100, keyMetric: 'Advance clearances issued & tracked against Mother BOQ items',
     icon: Award,
   },
   {
@@ -121,9 +121,9 @@ const CHECKLIST: CheckItem[] = [
   {
     id: '2.10', ref: 'BRD 2.10', title: '25% Pre-Production & 60-Day Ground Break Gate',
     moduleId: '4.14', module: 'Production Readiness',
-    description: 'Formal gate review: Route survey approved, 10-item Mother BOQ fed, 100% Conductor & 75% HW cleared, Store certified ready, CEIG & Form V applied, CPBG submitted. Unlocks Day 60 tower foundations.',
+    description: 'Formal gate review: Route survey approved, Client Mother BOQ ingested, advance manufacturing clearances issued, Site store certified by Inventory Controller, CEIG & Form V applied, CPBG submitted. Unlocks Day 60 tower foundations.',
     route: '/golden-period', sla: '≤60 days from award acceptance',
-    status: 'In Progress', progress: 85, keyMetric: '5/6 gate criteria cleared · Day 42 of 60 · On track for 15-Nov foundation kickoff',
+    status: 'In Progress', progress: 85, keyMetric: '5/6 gate criteria cleared · Day 42 of 60 · On track for ground break',
     icon: Lock,
   },
   {
@@ -178,6 +178,7 @@ const MODULE_MAP = [
 const COLORS = ['#22c55e', '#6366f1', '#f59e0b', '#ef4444'];
 
 import { usePersistentState } from '../../hooks/usePersistentState';
+import { ClientBOQItem, INITIAL_MSETCL_BOQ } from '../../types/clientBoq';
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
@@ -185,6 +186,7 @@ export default function GoldenPeriodDashboard() {
   const navigate = useNavigate();
   const { getEffectivePermission } = useAuth();
   const [checklist, setChecklist] = usePersistentState<CheckItem[]>('epc_stage2_checklist', CHECKLIST);
+  const [clientBoqs] = usePersistentState<ClientBOQItem[]>('epc_client_boq_items', INITIAL_MSETCL_BOQ);
   const [activeTab, setActiveTab] = useState<'checklist' | 'analytics' | 'modules'>('checklist');
   const [filter, setFilter] = useState('All');
 
@@ -271,7 +273,7 @@ export default function GoldenPeriodDashboard() {
               Pre-Construction Execution Window (Day 0: Award → Day 60: Civil Foundation Kickoff)
             </h3>
             <p className="text-xs text-indigo-200 mt-1 max-w-2xl">
-              Strictly driven by the 10-Item Mother Order BOQ, 100% Conductor & 75% Hardware advance clearances, Site Store certification by Inventory Controller, and the 2-Part Statutory tracks.
+              Strictly driven by Client Mother Order BOQ ingestion, advance manufacturing clearances, Site Store certification by Inventory Controller, and the 2-Part Statutory tracks.
             </p>
           </div>
 
@@ -297,11 +299,11 @@ export default function GoldenPeriodDashboard() {
         <div className="mt-4 pt-3 border-t border-indigo-800/50 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
           <div className="bg-white/5 p-2 rounded border border-white/10">
             <span className="text-[10px] text-indigo-300 block font-semibold">1. Mother BOQ Feed</span>
-            <span className="text-emerald-400 font-bold">10 Items Mapped</span>
+            <span className="text-emerald-400 font-bold">{clientBoqs.length} Items Ingested</span>
           </div>
           <div className="bg-white/5 p-2 rounded border border-white/10">
             <span className="text-[10px] text-indigo-300 block font-semibold">2. Mfg Clearance</span>
-            <span className="text-emerald-400 font-bold">100% Cond / 75% HW</span>
+            <span className="text-emerald-400 font-bold">{clientBoqs.filter(b => b.orderedQty > 0).length}/{clientBoqs.length} Items Mapped</span>
           </div>
           <div className="bg-white/5 p-2 rounded border border-white/10">
             <span className="text-[10px] text-indigo-300 block font-semibold">3. Inspection / DI Loop</span>
