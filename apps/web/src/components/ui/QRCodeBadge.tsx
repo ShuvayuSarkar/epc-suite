@@ -33,7 +33,7 @@ export const QRCodeBadge: React.FC<QRCodeBadgeProps> = ({
       <div className="text-[11px] space-y-0.5">
         <div className="flex items-center gap-1 font-bold text-slate-800">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Wrench Verified</span>
+          <span>Verified</span>
         </div>
         <p className="font-mono text-indigo-600 font-semibold">{docNo}</p>
         <p className="text-slate-500 font-medium">Rev: {revision} · {status}</p>

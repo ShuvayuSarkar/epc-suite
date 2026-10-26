@@ -51,7 +51,7 @@ const EngineeringDocList = React.lazy(() => import('./pages/engineering-docs/Eng
 const CorrespondenceList = React.lazy(() => import('./pages/correspondence/CorrespondenceList'));
 const RFIList = React.lazy(() => import('./pages/rfis/RFIList'));
 
-// Wrench Document Control, Meetings, Deliverables & Compliance
+// Document Control, Meetings, Deliverables & Compliance
 const TransmittalList = React.lazy(() => import('./pages/transmittals/TransmittalList'));
 const CRSList = React.lazy(() => import('./pages/crs/CRSList'));
 const MOMList = React.lazy(() => import('./pages/meetings/MOMList'));

@@ -114,7 +114,7 @@ export default function IncidentList() {
         }
       />
 
-      {/* Wrench Safety KPIs Banner */}
+      {/* Safety KPIs Banner */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
